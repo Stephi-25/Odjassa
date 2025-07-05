@@ -21,12 +21,12 @@ app.get('/api/v1/health', (req, res) => {
 // Import Routers
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-// const productRoutes = require('./routes/productRoutes'); // Placeholder for when we add product routes
+const productRoutes = require('./routes/productRoutes');
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/products', productRoutes); // Placeholder
+app.use('/api/v1/products', productRoutes);
 
 // Global error handler (very basic for now)
 app.use((err, req, res, next) => {
