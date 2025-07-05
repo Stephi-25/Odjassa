@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14-alpine # Using a specific version is good practice
+    container_name: odjassa_db
+    ports:
+      - "5433:5432" # Expose host 5433 to container 5432 to avoid conflicts if local PG runs on 5432
+    environment:
+      POSTGRES_USER: odjassauser
+      POSTGRES_PASSWORD: odjassapassword
+      POSTGRES_DB: odjassanet_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Mount initial SQL scripts if needed for setup beyond migrations
+      # - ./database/migrations:/docker-entrypoint-initdb.d # Scripts here run on init if DB is empty
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odjassauser -d odjassanet_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: . # Build context is the root of the project
+      dockerfile: docker/Dockerfile.backend
+    container_name: odjassa_backend
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development # Override for local dev
+      PORT: 4000
+      DATABASE_URL: postgres://odjassauser:odjassapassword@db:5432/odjassanet_dev
+      JWT_SECRET: yourSuperSecretKeyForDevelopmentOnly # Change this!
+      # Add other backend environment variables here
+    volumes:
+      - ./backend:/app # Mount backend code for live reload
+      - /app/node_modules # Anonymous volume to prevent host node_modules overwriting container's
+    depends_on:
+      db:
+        condition: service_healthy # Wait for DB to be healthy
+    restart: unless-stopped
+    # command: npm run dev # If your Dockerfile.backend CMD is for production
+
+  frontend:
+    build:
+      context: . # Build context is the root of the project
+      dockerfile: docker/Dockerfile.frontend
+      args: # Example of passing build args to frontend Dockerfile
+        REACT_APP_API_URL: http://localhost:4000/api/v1
+    container_name: odjassa_frontend
+    ports:
+      - "3000:80" # React app served by Nginx on port 80 in container
+    volumes:
+      # For development with React's hot-reloading, you might serve directly via react-scripts
+      # This setup is more for a built frontend served by Nginx.
+      # If using create-react-app dev server directly:
+      # - ./frontend:/app
+      # - /app/node_modules
+      # command: npm start --prefix frontend
+      # ports:
+      #   - "3000:3000"
+      # environment:
+      #   - CHOKIDAR_USEPOLLING=true # May be needed for hot reload in Docker
+      #   - REACT_APP_API_URL=http://localhost:4000/api/v1
+      #   - WDS_SOCKET_PORT=0 # For CRA 5+
+      ./frontend/src:/app/src # If Dockerfile.frontend copies src to /app/src
+      ./frontend/public:/app/public # If Dockerfile.frontend copies public to /app/public
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # admin_panel: # Placeholder for admin panel service
+  #   build:
+  #     context: ./admin-panel
+  #     dockerfile: Dockerfile.admin
+  #   container_name: odjassa_admin_panel
+  #   ports:
+  #     - "3001:80" # Or whatever port it serves on
+  #   depends_on:
+  #     - backend
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data: # Persists database data across container restarts
+    driver: local

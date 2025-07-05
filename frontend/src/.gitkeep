@@ -1,0 +1,3 @@
+# This is just to ensure the directory frontend/src/ exists.
+# If it already exists, this command will do nothing.
+# If it doesn't, it will create it along with the .gitkeep file.
