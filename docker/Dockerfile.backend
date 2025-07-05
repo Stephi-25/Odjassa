@@ -1,0 +1,48 @@
+# Placeholder Dockerfile for Backend (Node.js/Express)
+
+# Use an official Node.js runtime as a parent image
+FROM node:18-alpine
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json (or yarn.lock)
+# Adjust path if backend is in a subdirectory of the build context
+COPY backend/package.json backend/package-lock.json* ./
+# If context is backend dir:
+# COPY package.json package-lock.json* ./
+
+# Install app dependencies
+# Use a .dockerignore file to prevent copying local node_modules
+RUN npm install --legacy-peer-deps --only=production
+# If you have devDependencies needed for a build step (e.g. TypeScript), install all then prune
+
+# Copy the rest of the application code from the backend directory
+# Adjust path if backend is in a subdirectory of the build context
+COPY backend/ ./
+# If context is backend dir:
+# COPY . .
+
+# Make sure src is copied if not included above, e.g. if only package files were copied first
+# COPY backend/src ./src
+
+# Application environment variables (can be overridden at runtime)
+ENV NODE_ENV=production
+ENV PORT=4000
+# ENV DATABASE_URL=your_database_connection_string
+# ENV JWT_SECRET=your_jwt_secret
+
+# Expose the port the app runs on
+EXPOSE 4000
+
+# Define the command to run the application
+# This assumes your main entry point is src/server.js as per backend/package.json
+CMD ["node", "src/server.js"]
+
+# If using nodemon for development (not recommended for production images):
+# CMD ["npm", "run", "dev"]
+# Ensure nodemon is in dependencies or copy devDependencies as well.
+# For production, prefer PM2 or similar process managers, or let Docker/Kubernetes handle restarts.
+# Example with PM2 (install pm2 globally or as a dependency):
+# RUN npm install pm2 -g
+# CMD ["pm2-runtime", "src/server.js"]
