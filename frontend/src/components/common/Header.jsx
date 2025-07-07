@@ -32,6 +32,11 @@ const Header = () => {
                   {user ? user.username : 'Profile'} {/* Display username if available */}
                 </Link>
               </li>
+              {user && user.role === 'vendor' && (
+                <li style={styles.navItem}>
+                  <Link to="/vendor/dashboard" style={styles.navLink}>Vendor Dashboard</Link>
+                </li>
+              )}
               <li style={styles.navItem}>
                 <button onClick={handleLogout} style={{...styles.navLink, ...styles.buttonLink}}>Logout</button>
               </li>
