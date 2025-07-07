@@ -1,7 +1,9 @@
+# .dockerignore
+
 # Git
 .git
 .gitignore
-**/TAGS # ctags if used
+**/TAGS
 
 # Node modules (from host, images will build their own)
 node_modules/
@@ -19,7 +21,7 @@ node_modules/
 *~
 *.sublime-project
 *.sublime-workspace
-nbproject/ # Netbeans
+nbproject/
 
 # OS specific
 .DS_Store
@@ -38,14 +40,9 @@ lerna-debug.log*
 # Environment files (these should be passed at runtime, not built into image)
 .env
 .env.*
-!.env.example # Keep examples if they are part of source
+!.env.example
 !frontend/.env.example
 !backend/.env.example
-
-# Docker specific files within context if not needed inside image
-# docker-compose.yml
-# Dockerfile # (If building specific Dockerfiles directly, you might want to exclude others)
-# However, often these are needed by the build context itself.
 
 # Test outputs
 coverage/
@@ -56,12 +53,6 @@ junit.xml
 .tmp/
 .cache/
 .eslintcache
-
-# Specific project files if any that shouldn't be in image
-# e.g. terraform state files if they end up in context
-# *.tfstate
-# *.tfstate.backup
-# .terraform/
 
 # Python specific
 __pycache__/
@@ -80,29 +71,15 @@ pip-wheel-metadata/
 .mypy_cache/
 .ruff_cache/
 
-# Frontend specific temp/build folders (if not already covered by **/build)
-# frontend/.next # For Next.js
-# frontend/.nuxt # For Nuxt.js
-# frontend/.svelte-kit # For SvelteKit
-
-# Backend specific temp/build folders (if not already covered by **/dist)
-# backend/target # For Java/Scala
-# backend/bin # For Go
-
 # Uploads in local development (should not be part of the image)
 backend/public/uploads/
-# Keep the .gitkeep to ensure directory structure is versioned
 !backend/public/uploads/**/.gitkeep
-!frontend/public/uploads/**/.gitkeep # If frontend had uploads too
+!frontend/public/uploads/**/.gitkeep
 
 # Admin panel specific (if it has its own build/node_modules)
 admin-panel/node_modules/
 admin-panel/build/
 admin-panel/dist/
-
-# Database data (if mounted from a local path in dev, definitely ignore)
-# postgres_data/
-# mysql_data/
 
 # Archives
 *.tar.gz
