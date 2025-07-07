@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path'); // Import path module
+const cors = require('cors'); // Import cors middleware
 // const dotenv = require('dotenv'); // We might add this later if needed for .env file directly
 
 // Load environment variables (though Docker Compose will primarily set them)
@@ -9,6 +10,21 @@ const app = express();
 
 // Middlewares
 app.use(express.json()); // Middleware to parse JSON bodies
+
+// CORS Middleware -
+// Allow requests from your frontend development server or your deployed frontend URL.
+// For development, if frontend is on localhost:3000 (React default) or 3001 (if using frontend-prod-build from compose)
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || [
+    'http://localhost:3000', // Common React dev port
+    'http://localhost:3001', // Port used in docker-compose.yml for frontend-prod-build
+    // Add your deployed frontend URL here for production
+  ],
+  optionsSuccessStatus: 200 // For legacy browser compatibility
+};
+app.use(cors(corsOptions));
+console.log(`CORS enabled for origins: ${JSON.stringify(corsOptions.origin)}`);
+
 
 // Serve static files (e.g., uploaded product images)
 // This makes files in backend/public/uploads/products accessible via /uploads/products URL path

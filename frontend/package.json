@@ -10,10 +10,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "echo \"Simulating react-scripts start\" && exit 0",
-    "build": "echo \"Simulating react-scripts build\" && exit 0",
-    "test": "echo \"Simulating react-scripts test\" && exit 0",
-    "eject": "echo \"Simulating react-scripts eject\" && exit 0"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
