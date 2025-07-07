@@ -85,6 +85,119 @@ const apiService = {
   loginUser,
   getMyProfile,
   // Add other methods here
+
+  // --- Product Service Functions ---
+
+  /**
+   * Uploads a single product image.
+   * @param {FormData} formData - The FormData object containing the image file.
+   *                               formData.append('productImage', file);
+   * @returns {Promise<object>} The API response data (image URL/path).
+   */
+  uploadProductImage: async (formData) => {
+    try {
+      // For file uploads, Content-Type is typically set by browser/axios with FormData
+      // So, we might need a separate axios instance or override headers for this request.
+      // However, our current interceptor adds Authorization, which is good.
+      // Let's assume the global apiClient can handle FormData correctly.
+      // If not, a specific instance for file uploads might be needed.
+      const response = await apiClient.post('/uploads/product-image/single', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Important for file uploads
+        },
+      });
+      return response.data; // Expected: { status, message, data: { publicUrl, ... } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Image upload failed.');
+    }
+  },
+
+  /**
+   * Creates a new product.
+   * @param {object} productData - Data for the new product.
+   * @returns {Promise<object>} The API response data (created product).
+   */
+  createProduct: async (productData) => {
+    try {
+      const response = await apiClient.post('/products', productData);
+      return response.data; // Expected: { status, message, data: { product } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to create product.');
+    }
+  },
+
+  /**
+   * Gets products, possibly filtered.
+   * @param {object} params - Query parameters (e.g., { vendor_id: '123', category_id: '1', status: 'active', limit: 10, page: 1 }).
+   * @returns {Promise<object>} The API response data (list of products).
+   */
+  getProducts: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/products', { params });
+      return response.data; // Expected: { status, results, data: { products } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch products.');
+    }
+  },
+
+  /**
+   * Gets products for a specific vendor.
+   * @param {string|number} vendorId - The ID of the vendor.
+   * @param {object} params - Additional query parameters (e.g., { status: 'active', limit: 10, page: 1 }).
+   * @returns {Promise<object>} The API response data (list of products).
+   */
+  getVendorProducts: async (vendorId, params = {}) => {
+    try {
+      const queryParams = { ...params, vendor_id: vendorId };
+      const response = await apiClient.get('/products', { params: queryParams });
+      return response.data; // Expected: { status, results, data: { products } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch vendor products.');
+    }
+  },
+
+  /**
+   * Gets a single product by its ID.
+   * @param {string|number} productId - The ID of the product.
+   * @returns {Promise<object>} The API response data (product details).
+   */
+  getProductById: async (productId) => {
+    try {
+      const response = await apiClient.get(`/products/${productId}`);
+      return response.data; // Expected: { status, data: { product } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch product.');
+    }
+  },
+
+  /**
+   * Updates an existing product.
+   * @param {string|number} productId - The ID of the product to update.
+   * @param {object} productData - Data to update the product with.
+   * @returns {Promise<object>} The API response data (updated product).
+   */
+  updateProduct: async (productId, productData) => {
+    try {
+      const response = await apiClient.put(`/products/${productId}`, productData);
+      return response.data; // Expected: { status, message, data: { product } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to update product.');
+    }
+  },
+
+  /**
+   * Deletes a product.
+   * @param {string|number} productId - The ID of the product to delete.
+   * @returns {Promise<object>} The API response data (confirmation or deleted product).
+   */
+  deleteProduct: async (productId) => {
+    try {
+      const response = await apiClient.delete(`/products/${productId}`);
+      return response.data; // Expected: { status, message, data: { product } } (or just status/message)
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to delete product.');
+    }
+  },
 };
 
 export default apiService;

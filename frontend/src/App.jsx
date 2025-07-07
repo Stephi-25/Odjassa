@@ -10,6 +10,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
+// Vendor Pages
+import VendorDashboardPage from './pages/vendor/VendorDashboardPage';
+import ProductCreatePage from './pages/vendor/ProductCreatePage';
+import ProductEditPage from './pages/vendor/ProductEditPage';
 
 import Header from './components/common/Header';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -21,11 +25,12 @@ function App() {
       <Header /> {/* Basic Header for navigation */}
       <main>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected Route for Profile */}
+          {/* User Protected Routes (any authenticated user) */}
           <Route
             path="/profile"
             element={
@@ -35,15 +40,41 @@ function App() {
             }
           />
 
+          {/* Vendor Protected Routes (role 'vendor' required) */}
+          <Route
+            path="/vendor/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['vendor']}>
+                <VendorDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/products/new"
+            element={
+              <ProtectedRoute allowedRoles={['vendor']}>
+                <ProductCreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendor/products/edit/:productId"
+            element={
+              <ProtectedRoute allowedRoles={['vendor']}>
+                <ProductEditPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Example of using Outlet for multiple nested protected routes:
-          <Route path="/dashboard" element={<ProtectedRoute />}>
-            <Route index element={<DashboardHomePage />} />
-            <Route path="settings" element={<DashboardSettingsPage />} />
+          <Route path="/admin/panel" element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="users" element={<AdminUserManagementPage />} />
           </Route>
           */}
 
-          {/* Add other routes here as needed */}
-          <Route path="*" element={<NotFoundPage />} /> {/* Catch-all for 404 */}
+          {/* Catch-all for 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
       {/* Basic Footer can go here */}
