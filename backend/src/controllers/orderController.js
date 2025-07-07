@@ -2,6 +2,8 @@ const orderModel = require('../models/orderModel');
 const orderItemModel = require('../models/orderItemModel');
 const productModel = require('../models/productModel'); // To check stock and get product details
 const db = require('../config/database'); // For transactions
+const emailService = require('../services/emailService'); // Import email service
+const userModel = require('../models/userModel'); // To fetch user email if not on req.user
 
 /**
  * Validates the input for creating an order.
@@ -161,6 +163,41 @@ const createOrder = async (req, res, next) => {
     // Fetch the full order details to return (order + items)
     const createdOrderWithItems = await orderModel.findById(newOrder.id); // Using regular model function
     const orderItemsResult = await orderItemModel.findByOrderId(newOrder.id); // Using regular model function
+
+    // Send order confirmation email (fire and forget, don't block response)
+    let customerEmail = req.user.email; // Assuming email is on req.user from JWT
+    if (!customerEmail) {
+        const customer = await userModel.findById(user_id);
+        if (customer) customerEmail = customer.email;
+    }
+
+    if (customerEmail) {
+      const subject = `Your Odjassa-Net Order Confirmation #${newOrder.id}`;
+      const textBody = `Thank you for your order!\n\nOrder ID: ${newOrder.id}\nTotal Amount: ${newOrder.currency} ${newOrder.total_amount}\n\nWe will notify you once your order is processed and shipped.\n\nThanks,\nThe Odjassa-Net Team`;
+      // TODO: Create a more detailed HTML template later
+      const htmlBody = `
+        <h1>Thank you for your order!</h1>
+        <p><strong>Order ID:</strong> ${newOrder.id}</p>
+        <p><strong>Total Amount:</strong> ${newOrder.currency} ${newOrder.total_amount}</p>
+        <p>Items:</p>
+        <ul>
+          ${orderItemsResult.map(item => `<li>${item.product_name} (x${item.quantity}) - ${newOrder.currency} ${item.price_at_purchase.toFixed(2)} each</li>`).join('')}
+        </ul>
+        <p>We will notify you once your order is processed and shipped.</p>
+        <p>Thanks,<br/>The Odjassa-Net Team</p>
+      `;
+      emailService.sendEmail({
+        to: customerEmail,
+        subject: subject,
+        text: textBody,
+        html: htmlBody,
+      }).catch(emailError => {
+        console.error(`Failed to send order confirmation email for order ${newOrder.id}:`, emailError.message);
+        // Log this error, but don't let it fail the main HTTP response
+      });
+    } else {
+        console.warn(`Could not determine customer email for order ${newOrder.id}. Confirmation email not sent.`);
+    }
 
     res.status(201).json({
       status: 'success',

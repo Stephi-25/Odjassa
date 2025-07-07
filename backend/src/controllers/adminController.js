@@ -1,4 +1,7 @@
 const productModel = require('../models/productModel');
+const orderModel = require('../models/orderModel'); // Already used for findById
+const userModel = require('../models/userModel');   // To get customer email
+const emailService = require('../services/emailService'); // For sending emails
 
 /**
  * Moderates a product by updating its status and optionally adding moderation notes.
@@ -148,6 +151,30 @@ const updateOrderStatus = async (req, res, next) => {
       message: `Order ${updatedOrder.id} updated successfully.`,
       data: { order: updatedOrder },
     });
+
+    // Send notification email if status changed to 'shipped' or 'delivered' (or other significant statuses)
+    if (status === 'shipped' && existingOrder.status !== 'shipped') {
+        const customer = await userModel.findById(updatedOrder.user_id);
+        if (customer && customer.email) {
+            emailService.sendEmail({
+                to: customer.email,
+                subject: `Your Odjassa-Net Order #${updatedOrder.id} Has Shipped!`,
+                text: `Great news! Your order #${updatedOrder.id} has been shipped.\nTracking Number: ${updatedOrder.tracking_number || 'N/A'}\n\nThank you for shopping with Odjassa-Net!`,
+                html: `<p>Great news! Your order #${updatedOrder.id} has been shipped.</p><p>Tracking Number: <strong>${updatedOrder.tracking_number || 'N/A'}</strong></p><p>Thank you for shopping with Odjassa-Net!</p>`
+            }).catch(err => console.error(`Failed to send 'shipped' email for order ${updatedOrder.id}:`, err.message));
+        }
+    } else if (status === 'delivered' && existingOrder.status !== 'delivered') {
+        const customer = await userModel.findById(updatedOrder.user_id);
+        if (customer && customer.email) {
+            emailService.sendEmail({
+                to: customer.email,
+                subject: `Your Odjassa-Net Order #${updatedOrder.id} Has Been Delivered!`,
+                text: `Your order #${updatedOrder.id} has been delivered.\nWe hope you enjoy your purchase!\n\nThank you for shopping with Odjassa-Net!`,
+                html: `<p>Your order #${updatedOrder.id} has been delivered.</p><p>We hope you enjoy your purchase!</p><p>Thank you for shopping with Odjassa-Net!</p>`
+            }).catch(err => console.error(`Failed to send 'delivered' email for order ${updatedOrder.id}:`, err.message));
+        }
+    }
+    // Add more notifications for other status changes like 'cancelled', 'refunded' etc. if needed.
 
   } catch (error) {
     if (!error.statusCode && error.message && error.message.includes('Transaction ID') && error.message.includes('already exists')) {
