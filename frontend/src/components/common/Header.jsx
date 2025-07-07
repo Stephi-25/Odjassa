@@ -38,6 +38,9 @@ const Header = () => {
                 </li>
               )}
               <li style={styles.navItem}>
+                <Link to="/orders" style={styles.navLink}>My Orders</Link>
+              </li>
+              <li style={styles.navItem}>
                 <button onClick={handleLogout} style={{...styles.navLink, ...styles.buttonLink}}>Logout</button>
               </li>
             </>

@@ -198,6 +198,52 @@ const apiService = {
       throw error.response ? error.response.data : new Error('Failed to delete product.');
     }
   },
+
+  // --- Order Service Functions ---
+
+  /**
+   * Gets all orders for the authenticated user.
+   * @param {object} params - Query parameters (e.g., { limit: 10, page: 1 }).
+   * @returns {Promise<object>} The API response data (list of orders).
+   */
+  getUserOrders: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/orders', { params });
+      return response.data; // Expected: { status, results, data: { orders } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch user orders.');
+    }
+  },
+
+  /**
+   * Gets details of a specific order.
+   * @param {string|number} orderId - The ID of the order.
+   * @returns {Promise<object>} The API response data (order details including items).
+   */
+  getOrderDetails: async (orderId) => {
+    try {
+      const response = await apiClient.get(`/orders/${orderId}`);
+      return response.data; // Expected: { status, data: { order, items } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch order details.');
+    }
+  },
+
+  /**
+   * Creates a new order.
+   * @param {object} orderData - { items: [{product_id, quantity}], shipping_address, ... }
+   * @returns {Promise<object>} API response.
+   */
+  createOrder: async (orderData) => {
+    try {
+        const response = await apiClient.post('/orders', orderData);
+        return response.data; // Expected: { status, message, data: { order, items } }
+    } catch (error) {
+        throw error.response ? error.response.data : new Error('Failed to create order.');
+    }
+  }
+  // Add more order related functions here if needed (e.g., cancelOrder)
+
 };
 
 export default apiService;

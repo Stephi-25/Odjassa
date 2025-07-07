@@ -14,6 +14,9 @@ import NotFoundPage from './pages/NotFoundPage';
 import VendorDashboardPage from './pages/vendor/VendorDashboardPage';
 import ProductCreatePage from './pages/vendor/ProductCreatePage';
 import ProductEditPage from './pages/vendor/ProductEditPage';
+// Order Pages
+import OrderHistoryPage from './pages/OrderHistoryPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 
 import Header from './components/common/Header';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -62,6 +65,24 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['vendor']}>
                 <ProductEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Order Routes (for authenticated users) */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderDetailPage />
               </ProtectedRoute>
             }
           />
