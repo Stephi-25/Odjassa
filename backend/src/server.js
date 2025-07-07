@@ -22,11 +22,13 @@ app.get('/api/v1/health', (req, res) => {
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // Import admin routes
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/admin', adminRoutes); // Add admin routes
 
 // Global error handler (very basic for now)
 app.use((err, req, res, next) => {

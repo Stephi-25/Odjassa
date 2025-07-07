@@ -201,10 +201,38 @@ const remove = async (productId) => {
 // TODO: Consider adding functions for soft delete and restore if needed later.
 // const softDelete = async (productId) => { ... update status to 'deleted' ... }
 
+
+/**
+ * Updates the status and moderation notes of a product.
+ * @param {number} productId
+ * @param {string} status - The new status for the product.
+ * @param {string|null} moderationNotes - Optional notes from the moderator.
+ * @returns {Promise<object|null>} The updated product object, or null if not found.
+ */
+const updateStatus = async (productId, status, moderationNotes = null) => {
+  const queryText = `
+    UPDATE products
+    SET status = $1, moderation_notes = $2, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $3
+    RETURNING *;
+  `;
+  const values = [status, moderationNotes, productId];
+
+  try {
+    const { rows } = await db.query(queryText, values);
+    return rows[0] || null;
+  } catch (error) {
+    console.error('Error updating product status in model:', error.message);
+    throw new Error('Could not update product status in database.');
+  }
+};
+
+
 module.exports = {
   create,
   findById,
   findAll,
   update,
   remove,
+  updateStatus,
 };
