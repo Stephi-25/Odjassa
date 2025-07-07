@@ -3,3 +3,8 @@ node_modules/
 npm-debug.log
 *.log
 coverage/
+
+# Ignore uploaded files within the public/uploads directory, but not the directory itself.
+# Keep the .gitkeep file to ensure the directory structure is versioned.
+public/uploads/**
+!public/uploads/**/.gitkeep
