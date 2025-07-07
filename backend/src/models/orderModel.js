@@ -153,9 +153,95 @@ const updateStatus = async (orderId, status, additionalUpdates = {}) => {
 // TODO: Add functions for more complex queries if needed, e.g., find by status, date range, etc.
 // Or for admin/vendor views of orders.
 
+/**
+ * Assigns a delivery person to an order and updates its status.
+ * @param {number} orderId
+ * @param {number} deliveryPersonId
+ * @param {string} newStatus - e.g., 'awaiting_pickup'
+ * @returns {Promise<object|null>} The updated order object, or null if not found.
+ */
+const assignDeliveryPerson = async (orderId, deliveryPersonId, newStatus = 'awaiting_pickup') => {
+  const queryText = `
+    UPDATE orders
+    SET delivery_person_id = $1, status = $2, updated_at = CURRENT_TIMESTAMP
+    WHERE id = $3
+    RETURNING *;
+  `;
+  const values = [deliveryPersonId, newStatus, orderId];
+  try {
+    const { rows } = await db.query(queryText, values);
+    return rows[0] || null;
+  } catch (error) {
+    console.error('Error assigning delivery person in model:', error.message);
+    throw new Error('Could not assign delivery person to order.');
+  }
+};
+
+/**
+ * Finds orders that are ready for pickup and not yet assigned.
+ * @param {object} pagination - { limit = 10, offset = 0 }
+ * @returns {Promise<Array<object>>} An array of order objects.
+ */
+const findAvailableForPickup = async (pagination = { limit: 10, offset = 0 }) => {
+  // Assumes 'ready_for_delivery' is the status for orders prepared by vendors/admin
+  // and waiting for a delivery person to claim or be assigned.
+  const queryText = `
+    SELECT * FROM orders
+    WHERE status = 'ready_for_delivery' AND delivery_person_id IS NULL
+    ORDER BY created_at ASC -- Prioritize older orders
+    LIMIT $1 OFFSET $2;
+  `;
+  const values = [pagination.limit, pagination.offset];
+  try {
+    const { rows } = await db.query(queryText, values);
+    return rows;
+  } catch (error) {
+    console.error('Error finding available orders for pickup in model:', error.message);
+    throw new Error('Could not retrieve available orders for pickup.');
+  }
+};
+
+/**
+ * Finds orders assigned to a specific delivery person.
+ * @param {number} deliveryPersonId
+ * @param {Array<string>} statusFilters - Optional array of statuses to filter by (e.g., ['awaiting_pickup', 'out_for_delivery'])
+ * @param {object} pagination - { limit = 10, offset = 0 }
+ * @returns {Promise<Array<object>>} An array of order objects.
+ */
+const findByDeliveryPersonId = async (deliveryPersonId, statusFilters = [], pagination = { limit: 10, offset = 0 }) => {
+  let queryText = 'SELECT * FROM orders WHERE delivery_person_id = $1';
+  const values = [deliveryPersonId];
+  let paramCount = 2;
+
+  if (statusFilters && statusFilters.length > 0) {
+    // Create placeholders like $2, $3, etc. for each status in the IN clause
+    const statusPlaceholders = statusFilters.map(() => `$${paramCount++}`).join(', ');
+    queryText += ` AND status IN (${statusPlaceholders})`;
+    values.push(...statusFilters);
+  } else {
+    // Default: Don't show already delivered, completed, failed, or cancelled orders unless specified
+     queryText += ` AND status NOT IN ('delivered', 'completed', 'failed', 'cancelled', 'refunded')`;
+  }
+
+  queryText += ` ORDER BY created_at ASC LIMIT $${paramCount++} OFFSET $${paramCount++};`;
+  values.push(pagination.limit, pagination.offset);
+
+  try {
+    const { rows } = await db.query(queryText, values);
+    return rows;
+  } catch (error) {
+    console.error('Error finding orders by delivery person ID in model:', error.message);
+    throw new Error('Could not retrieve orders for delivery person.');
+  }
+};
+
+
 module.exports = {
   create,
   findById,
   findByUserId,
   updateStatus,
+  assignDeliveryPerson,
+  findAvailableForPickup,
+  findByDeliveryPersonId,
 };
