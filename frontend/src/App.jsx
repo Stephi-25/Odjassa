@@ -17,6 +17,8 @@ import ProductEditPage from './pages/vendor/ProductEditPage';
 // Order Pages
 import OrderHistoryPage from './pages/OrderHistoryPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+// Delivery Pages
+import DeliveryDashboardPage from './pages/delivery/DeliveryDashboardPage';
 
 import Header from './components/common/Header';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -86,6 +88,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Delivery Protected Routes (role 'delivery_person' required) */}
+          <Route
+            path="/delivery/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['delivery_person']}>
+                <DeliveryDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Add more delivery specific routes here if needed, e.g., /delivery/orders/:orderId for details */}
 
           {/* Example of using Outlet for multiple nested protected routes:
           <Route path="/admin/panel" element={<ProtectedRoute allowedRoles={['admin']} />}>

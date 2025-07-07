@@ -37,6 +37,11 @@ const Header = () => {
                   <Link to="/vendor/dashboard" style={styles.navLink}>Vendor Dashboard</Link>
                 </li>
               )}
+              {user && user.role === 'delivery_person' && (
+                <li style={styles.navItem}>
+                  <Link to="/delivery/dashboard" style={styles.navLink}>Delivery Dashboard</Link>
+                </li>
+              )}
               <li style={styles.navItem}>
                 <Link to="/orders" style={styles.navLink}>My Orders</Link>
               </li>
