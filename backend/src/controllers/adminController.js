@@ -64,7 +64,102 @@ const moderateProduct = async (req, res, next) => {
 // - View site analytics (later phase)
 // - Manage categories
 
+
+/**
+ * Updates the status of an order and related fields.
+ * Accessible only by users with 'admin' role.
+ */
+const updateOrderStatus = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const {
+      status, // Main order status
+      payment_status,
+      transaction_id,
+      tracking_number,
+      delivered_at
+      // Potentially other fields like internal_notes for admin
+    } = req.body;
+
+    if (isNaN(parseInt(orderId))) {
+      const error = new Error('Invalid order ID format.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Validate main order status if provided
+    if (status !== undefined) {
+      const allowedOrderStatuses = [
+        'pending_payment', 'processing', 'awaiting_shipment', 'shipped',
+        'delivered', 'completed', 'cancelled', 'refunded', 'failed'
+      ];
+      if (!allowedOrderStatuses.includes(status)) {
+        const error = new Error(`Invalid order status value. Must be one of: ${allowedOrderStatuses.join(', ')}.`);
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    // Validate payment status if provided
+    if (payment_status !== undefined) {
+        const allowedPaymentStatuses = ['pending', 'paid', 'failed', 'refunded'];
+        if (!allowedPaymentStatuses.includes(payment_status)) {
+            const error = new Error(`Invalid payment status value. Must be one of: ${allowedPaymentStatuses.join(', ')}.`);
+            error.statusCode = 400;
+            throw error;
+        }
+    }
+
+    // Ensure at least one updatable field is provided (status or one of the additional fields)
+    if (status === undefined && payment_status === undefined && transaction_id === undefined && tracking_number === undefined && delivered_at === undefined) {
+        const error = new Error('No valid fields provided for update. Please provide at least an order status or other updatable order fields.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const existingOrder = await orderModel.findById(parseInt(orderId));
+    if (!existingOrder) {
+      const error = new Error('Order not found.');
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const additionalUpdates = {};
+    if (payment_status !== undefined) additionalUpdates.payment_status = payment_status;
+    if (transaction_id !== undefined) additionalUpdates.transaction_id = transaction_id; // Use null to clear
+    if (tracking_number !== undefined) additionalUpdates.tracking_number = tracking_number; // Use null to clear
+    if (delivered_at !== undefined) additionalUpdates.delivered_at = delivered_at; // Use null to clear
+
+    // Use the existing status if a new main status is not provided but other fields are
+    const newStatus = status !== undefined ? status : existingOrder.status;
+
+    const updatedOrder = await orderModel.updateStatus(parseInt(orderId), newStatus, additionalUpdates);
+
+    if (!updatedOrder) {
+      const error = new Error('Order not found or failed to update status.');
+      error.statusCode = 404; // Or 500 if it's an unexpected failure
+      return next(error);
+    }
+
+    // TODO: Potentially trigger notifications here (e.g., order shipped, order delivered)
+
+    res.status(200).json({
+      status: 'success',
+      message: `Order ${updatedOrder.id} updated successfully.`,
+      data: { order: updatedOrder },
+    });
+
+  } catch (error) {
+    if (!error.statusCode && error.message && error.message.includes('Transaction ID') && error.message.includes('already exists')) {
+        error.statusCode = 409; // Conflict for unique transaction_id
+    }
+    next(error);
+  }
+};
+
+
 module.exports = {
   moderateProduct,
+  updateOrderStatus,
   // ... other admin controller functions
 };

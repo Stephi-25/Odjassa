@@ -15,6 +15,13 @@ router.use(authorize('admin')); // Ensures user has 'admin' role
  */
 router.patch('/products/:productId/moderate', adminController.moderateProduct);
 
+/**
+ * @route   PATCH /api/v1/admin/orders/:orderId/status
+ * @desc    Update an order's status and related information (payment, shipping).
+ * @access  Private (Admin only)
+ */
+router.patch('/orders/:orderId/status', adminController.updateOrderStatus);
+
 
 // Future admin routes can be added here:
 // Example: Manage users
