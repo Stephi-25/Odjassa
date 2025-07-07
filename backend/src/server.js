@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path'); // Import path module
 // const dotenv = require('dotenv'); // We might add this later if needed for .env file directly
 
 // Load environment variables (though Docker Compose will primarily set them)
@@ -8,6 +9,11 @@ const app = express();
 
 // Middlewares
 app.use(express.json()); // Middleware to parse JSON bodies
+
+// Serve static files (e.g., uploaded product images)
+// This makes files in backend/public/uploads/products accessible via /uploads/products URL path
+app.use('/uploads/products', express.static(path.join(__dirname, '../public/uploads/products')));
+
 
 // Basic health check route
 app.get('/api/v1/health', (req, res) => {
@@ -22,13 +28,15 @@ app.get('/api/v1/health', (req, res) => {
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // Import admin routes
+const adminRoutes = require('./routes/adminRoutes');
+const uploadRoutes = require('./routes/uploadRoutes'); // Import upload routes
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/products', productRoutes);
-app.use('/api/v1/admin', adminRoutes); // Add admin routes
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/uploads', uploadRoutes); // Add upload routes
 
 // Global error handler (very basic for now)
 app.use((err, req, res, next) => {
