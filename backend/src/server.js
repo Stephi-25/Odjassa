@@ -30,7 +30,8 @@ const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-const orderRoutes = require('./routes/orderRoutes'); // Import order routes
+const orderRoutes = require('./routes/orderRoutes');
+const deliveryRoutes = require('./routes/deliveryRoutes'); // Import delivery routes
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
@@ -38,7 +39,8 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/uploads', uploadRoutes);
-app.use('/api/v1/orders', orderRoutes); // Add order routes
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/delivery', deliveryRoutes); // Add delivery routes
 
 // Global error handler (very basic for now)
 app.use((err, req, res, next) => {
