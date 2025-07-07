@@ -244,6 +244,66 @@ const apiService = {
   }
   // Add more order related functions here if needed (e.g., cancelOrder)
 
+
+  // --- Delivery Service Functions ---
+
+  /**
+   * Gets orders available for delivery personnel to claim.
+   * @param {object} params - Query parameters (e.g., { limit: 10, page: 1 }).
+   * @returns {Promise<object>} The API response data (list of available orders).
+   */
+  getAvailableOrdersForDelivery: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/delivery/available', { params });
+      return response.data; // Expected: { status, results, data: { orders } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch available orders for delivery.');
+    }
+  },
+
+  /**
+   * Gets orders assigned to the currently authenticated delivery person.
+   * @param {object} params - Query parameters (e.g., { status: 'out_for_delivery', limit: 10, page: 1 }).
+   * @returns {Promise<object>} The API response data (list of assigned orders).
+   */
+  getMyAssignedDeliveries: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/delivery/my-orders', { params });
+      return response.data; // Expected: { status, results, data: { orders } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to fetch assigned deliveries.');
+    }
+  },
+
+  /**
+   * Allows a delivery person to claim an order.
+   * @param {string|number} orderId - The ID of the order to claim.
+   * @returns {Promise<object>} The API response data (updated order).
+   */
+  claimOrderForDelivery: async (orderId) => {
+    try {
+      const response = await apiClient.patch(`/delivery/orders/${orderId}/claim`);
+      return response.data; // Expected: { status, message, data: { order } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to claim order for delivery.');
+    }
+  },
+
+  /**
+   * Allows a delivery person to update the status of an order assigned to them.
+   * @param {string|number} orderId - The ID of the order to update.
+   * @param {object} statusUpdateData - Data for the status update (e.g., { status: 'delivered', notes: '...' }).
+   * @returns {Promise<object>} The API response data (updated order).
+   */
+  updateDeliveryOrderStatus: async (orderId, statusUpdateData) => {
+    try {
+      const response = await apiClient.patch(`/delivery/orders/${orderId}/status`, statusUpdateData);
+      return response.data; // Expected: { status, message, data: { order } }
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Failed to update delivery order status.');
+    }
+  },
+
 };
 
 export default apiService;
